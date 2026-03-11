@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>静·界 | 简约静态网站</title>
+  <!-- 柔和的中性色风格，无任何外部依赖，纯静态 -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f9fafc;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: #2e3b4e;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* 柔和渐变头部 */
+    header {
+      background: linear-gradient(145deg, #f0f4fa 0%, #e9eef3 100%);
+      padding: 3rem 1.5rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(152, 166, 183, 0.15);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    header h1 {
+      font-size: 3rem;
+      font-weight: 450;
+      letter-spacing: -0.5px;
+      color: #1f2b38;
+      margin-bottom: 0.4rem;
+    }
+
+    header .subhead {
+      font-size: 1.2rem;
+      color: #4a5c72;
+      font-weight: 300;
+      max-width: 600px;
+      margin: 0.5rem auto 0;
+      border-top: 1px dashed #b7c3d0;
+      padding-top: 1rem;
+    }
+
+    /* 主体内容容器 */
+    .container {
+      max-width: 1200px;
+      margin: 2.5rem auto;
+      padding: 0 1.8rem;
+      flex: 1;
+    }
+
+    /* 卡片网格 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 1.8rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 26px;
+      padding: 1.8rem 1.5rem;
+      box-shadow: 0 12px 28px -8px rgba(28, 40, 54, 0.08), 0 4px 10px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s ease;
+      border: 1px solid #ffffff80;
+      backdrop-filter: blur(2px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 38px -12px rgba(28, 55, 84, 0.18);
+      border-color: #d9e1ec;
+    }
+
+    .card-icon {
+      font-size: 2.6rem;
+      line-height: 1;
+      margin-bottom: 1.2rem;
+      filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.02));
+    }
+
+    .card h3 {
+      font-size: 1.6rem;
+      font-weight: 450;
+      margin-bottom: 1rem;
+      color: #1f2b38;
+      border-left: 5px solid #9fb7d3;
+      padding-left: 0.9rem;
+    }
+
+    .card p {
+      color: #3b4b5e;
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+    }
+
+    .card .meta {
+      margin-top: auto;
+      color: #697e9a;
+      font-size: 0.9rem;
+      border-top: 1px solid #e3e9f2;
+      padding-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      background: #e8eef7;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      color: #2f4057;
+      font-weight: 500;
+    }
+
+    /* 特色横幅 - 简约个人简介 */
+    .profile-area {
+      background: #ffffffd9;
+      backdrop-filter: blur(4px);
+      border-radius: 42px;
+      padding: 2rem 2.2rem;
+      margin: 3rem 0 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2rem;
+      border: 1px solid #eef2f8;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      background-image: radial-gradient(circle at 30% 30%, #d6e0f0, #b2c2d6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.2rem;
+      color: #364958;
+      box-shadow: inset -2px -2px 5px #ffffff, inset 2px 2px 5px #9fb0c9;
+    }
+
+    .profile-text {
+      flex: 1;
+    }
+
+    .profile-text h2 {
+      font-size: 2rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.3px;
+      color: #1d2b3a;
+    }
+
+    .profile-text p {
+      font-size: 1.1rem;
+      color: #415570;
+      max-width: 700px;
+    }
+
+    /* 引用区块 */
+    .quote-block {
+      background: none;
+      border-left: 4px solid #9cb2d1;
+      padding: 1.2rem 2rem;
+      margin: 2.8rem 0 2rem;
+      font-style: normal;
+      background: #f4f8ff;
+      border-radius: 0 60px 60px 0;
+    }
+
+    .quote-block p {
+      font-size: 1.3rem;
+      font-weight: 300;
+      color: #29384b;
+    }
+
+    .quote-block footer {
+      margin-top: 0.5rem;
+      color: #5e7392;
+    }
+
+    /* 页脚 */
+    footer {
+      background: #edf2f9;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      color: #52647a;
+      border-top: 1px solid #dce3ed;
+      font-size: 0.95rem;
+      margin-top: 2rem;
+    }
+
+    footer a {
+      color: #2f496e;
+      text-decoration: none;
+      border-bottom: 1px dotted #8fa2c0;
+    }
+
+    footer a:hover {
+      color: #0e2742;
+      border-bottom: 1px solid;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin: 1rem 0 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    /* 一些工具类 */
+    .text-sm {
+      font-size: 0.9rem;
+    }
+
+    .mt-2 {
+      margin-top: 1.5rem;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #dee7f0;
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>✦ 静 · 界 ✦</h1>
+  <div class="subhead">卡片叙事 · 留白造境 · 静态纯粹</div>
+</header>
+
+<main class="container">
+  <!-- 简介卡片 / 个人头像区域 (横向) -->
+  <div class="profile-area">
+    <div class="profile-avatar" aria-label="抽象头像">◉‿◉</div>
+    <div class="profile-text">
+      <h2>胡 禅 · Hu Chan</h2>
+      <p>数字漫游者 / 界面爱好者。 这个网站是完全的静态HTML，却想装下一点点有趣的想法。没有后台，没有构建，只有最朴素的卡片与留白。</p>
+      <span class="badge" style="margin-top:0.8rem; display:inline-block;">✧ 极简主义 · 2025 ✧</span>
+    </div>
+  </div>
+
+  <!-- 格言/引用 增加一些层次 -->
+  <div class="quote-block">
+    <p>“ 把复杂留给逻辑，把简单交给界面。静态并非枯燥，每一行代码都是一次展览。” </p>
+    <footer>—— 本页无框架，无依赖，仅HTML/CSS</footer>
+  </div>
+
+  <!-- 卡片网格：展示静态站点可以包含的任意内容模块 -->
+  <h2 style="font-weight: 380; margin: 2.5rem 0 0.5rem; font-size: 2rem; letter-spacing:-0.3px; color:#243342;">今日·碎片</h2>
+  <div class="grid">
+    <!-- 卡片 1 -->
+    <article class="card">
+      <div class="card-icon">📘</div>
+      <h3>阅读偶得</h3>
+      <p>重读《瓦尔登湖》——“不必给我爱，不必给我钱，不必给我名誉，给我真理吧。” 静态页面像湖面，倒映内容本身。</p>
+      <div class="meta">
+        <span>📆 2025.03.11</span>
+        <span class="badge">笔记</span>
+      </div>
+    </article>
+
+    <!-- 卡片 2 -->
+    <article class="card">
+      <div class="card-icon">🌱</div>
+      <h3>植物手记</h3>
+      <p>最近窗台的薄荷长出新叶。光照、水、安静的生长。就像这个页面，只有基础的养分，却能常青。</p>
+      <div class="meta">
+        <span>📍 窗台</span>
+        <span class="badge">日常</span>
+      </div>
+    </article>
+
+    <!-- 卡片 3 -->
+    <article class="card">
+      <div class="card-icon">⚙️</div>
+      <h3>小工具集</h3>
+      <p>静态页面里也可以藏一些有用的小东西：比如字符计数器、待办列表。这里只是一个展示位。</p>
+      <div class="meta">
+        <span>🛠 构思中</span>
+        <span class="badge">实验</span>
+      </div>
+    </article>
+
+    <!-- 卡片 4  (额外增加一个宽一点的卡片在网格中也会自适应) -->
+    <article class="card">
+      <div class="card-icon">🖼</div>
+      <h3>今日图片</h3>
+      <p style="background: #eef3fa; border-radius: 18px; padding: 1rem 0.5rem; text-align: center; color:#4f658d;">
+        ⛅ [ 一片想象中的蓝色 ] <br> ( 纯粹CSS绘制的色块 )
+      </p>
+      <div class="meta">
+        <span>🎨 氛围</span>
+        <span class="badge">抽象</span>
+      </div>
+    </article>
+  </div>
+
+  <!-- 一个简单的水平分隔和附加链接区，仍然保持静态 -->
+  <hr>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 1.8rem; justify-content: space-between; align-items: center; margin: 2rem 0 1rem;">
+    <div>
+      <span style="font-size: 1.4rem; background: #e3eaf3; padding: 0.4rem 1.8rem; border-radius: 60px;">📮 联络点</span>
+    </div>
+    <div style="display: flex; gap: 2.5rem; flex-wrap: wrap; color:#345073;">
+      <span>✉️  hello@static.place</span>
+      <span>📱  @jingjie (假设)</span>
+      <span>🌐  uring.fake</span>
+    </div>
+  </div>
+
+  <!-- 另一个轻量模块: 常见问答/瞬间 -->
+  <section style="margin: 3rem 0 1rem;">
+    <h2 style="font-weight: 380; font-size: 1.8rem; color:#1d2c3f;">偶尔想到</h2>
+    <div style="display: flex; flex-direction: column; gap: 1.2rem; margin-top: 1.5rem;">
+      <details style="background: white; border-radius: 50px; padding: 0.8rem 1.8rem; border: 1px solid #dbe2ec; cursor: pointer;">
+        <summary style="font-weight: 500; color:#1b344d;">❓ 静态网站能做什么</summary>
+        <p style="margin-top: 0.8rem; color: #415775;">可以承载文字、图片、链接、卡片，展示作品，个人介绍，文档，甚至小游戏（用JS）。这里是纯展示，但潜力无限。</p>
+      </details>
+      <details style="background: white; border-radius: 50px; padding: 0.8rem 1.8rem; border: 1px solid #dbe2ec;">
+        <summary style="font-weight: 500; color:#1b344d;">❓ 为什么叫“静·界”</summary>
+        <p style="margin-top: 0.8rem; color: #415775;">静态的页面，内心的边界。一个没有后台干扰的小角落，每一个像素都出自写代码的当下。</p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<!-- 页脚部分，包含社交链接（仅示意）和版权 -->
+<footer>
+  <p style="font-size: 1.1rem; margin-bottom: 0.6rem;">🌿 保持简单，保持静态</p>
+  <div class="footer-links">
+    <a href="#">关于</a>
+    <a href="#">文字</a>
+    <a href="#">瞬间</a>
+    <a href="#">订阅 (rss)</a>
+    <a href="#">github</a>
+  </div>
+  <p style="margin-top: 1.2rem; opacity: 0.8;">© 2025 静·界 — 完全静态网站，无隐藏追踪，无cookies。</p>
+  <p style="margin-top: 0.3rem; font-size:0.85rem;">用❤️生成，只有HTML/CSS，自由修改，随处托管。</p>
+</footer>
+
+<!-- 不需要任何脚本，干干净净 -->
+</body>
+</html>
