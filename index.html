@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>静·界 | 简约静态网站</title>
-  <!-- 柔和的中性色风格，无任何外部依赖，纯静态 -->
+  <title>流光·静界 | 粒子交互</title>
   <style>
+    /* ===== 重置 & 全局 ===== */
     * {
       margin: 0;
       padding: 0;
@@ -13,351 +13,601 @@
     }
 
     body {
-      background-color: #f9fafc;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      color: #2e3b4e;
+      background-color: #0d1117;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: #e6edf3;
       line-height: 1.6;
-      display: flex;
-      flex-direction: column;
       min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      cursor: default; /* 保留默认指针，让粒子托尾更自然 */
     }
 
-    /* 柔和渐变头部 */
+    /* 粒子画布 (置于底层，但内容在上层) */
+    #particle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;  /* 让鼠标事件穿透，点击和移动依然由下层元素响应 */
+      z-index: 0;
+    }
+
+    /* 所有内容放在画布之上，并允许事件穿透到画布? 不，内容要可交互，所以画布不阻挡事件，内容正常接收 */
+    .content-wrapper {
+      position: relative;
+      z-index: 2;
+      pointer-events: auto;  /* 内容正常点击 */
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 柔和渐变头部 - 半透明磨砂效果 */
     header {
-      background: linear-gradient(145deg, #f0f4fa 0%, #e9eef3 100%);
-      padding: 3rem 1.5rem 2rem;
+      background: rgba(18, 26, 36, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(72, 92, 124, 0.25);
+      padding: 3rem 1.5rem 2.2rem;
       text-align: center;
-      border-bottom: 1px solid rgba(152, 166, 183, 0.15);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+      box-shadow: 0 15px 40px -15px rgba(0, 0, 0, 0.5);
     }
 
     header h1 {
-      font-size: 3rem;
-      font-weight: 450;
-      letter-spacing: -0.5px;
-      color: #1f2b38;
+      font-size: 4rem;
+      font-weight: 500;
+      letter-spacing: -1px;
+      background: linear-gradient(130deg, #c0d0f0, #a5c0ff, #d9e2ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
       margin-bottom: 0.4rem;
+      text-shadow: 0 0 15px rgba(90, 160, 255, 0.3);
     }
 
     header .subhead {
-      font-size: 1.2rem;
-      color: #4a5c72;
+      font-size: 1.3rem;
+      color: #9bb5d9;
       font-weight: 300;
-      max-width: 600px;
-      margin: 0.5rem auto 0;
-      border-top: 1px dashed #b7c3d0;
-      padding-top: 1rem;
+      max-width: 650px;
+      margin: 0.8rem auto 0;
+      border-top: 1px dashed #2f4770;
+      padding-top: 1.2rem;
+      letter-spacing: 0.3px;
     }
 
-    /* 主体内容容器 */
+    /* 主容器 */
     .container {
-      max-width: 1200px;
+      max-width: 1300px;
       margin: 2.5rem auto;
-      padding: 0 1.8rem;
+      padding: 0 2rem;
       flex: 1;
     }
 
-    /* 卡片网格 */
+    /* 网格卡片 - 毛玻璃效果 */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
-      margin-top: 1.8rem;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 2.2rem;
+      margin-top: 2rem;
     }
 
     .card {
-      background: white;
-      border-radius: 26px;
-      padding: 1.8rem 1.5rem;
-      box-shadow: 0 12px 28px -8px rgba(28, 40, 54, 0.08), 0 4px 10px rgba(0, 0, 0, 0.02);
-      transition: all 0.2s ease;
-      border: 1px solid #ffffff80;
-      backdrop-filter: blur(2px);
+      background: rgba(22, 32, 45, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(75, 110, 160, 0.3);
+      border-radius: 36px;
+      padding: 2rem 1.8rem;
+      box-shadow: 0 20px 35px -10px rgba(0, 10, 30, 0.6);
+      transition: transform 0.25s ease, border-color 0.2s, box-shadow 0.3s;
       display: flex;
       flex-direction: column;
     }
 
     .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 24px 38px -12px rgba(28, 55, 84, 0.18);
-      border-color: #d9e1ec;
+      transform: translateY(-8px) scale(1.01);
+      border-color: #6080c0;
+      box-shadow: 0 30px 50px -12px #1e3a5f, 0 0 0 1px rgba(100, 160, 255, 0.2);
     }
 
     .card-icon {
-      font-size: 2.6rem;
+      font-size: 3rem;
       line-height: 1;
       margin-bottom: 1.2rem;
-      filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.02));
+      filter: drop-shadow(0 5px 8px #1f3145);
     }
 
     .card h3 {
-      font-size: 1.6rem;
-      font-weight: 450;
+      font-size: 1.9rem;
+      font-weight: 470;
       margin-bottom: 1rem;
-      color: #1f2b38;
-      border-left: 5px solid #9fb7d3;
-      padding-left: 0.9rem;
+      background: linear-gradient(to right, #eaf0ff, #b3ceff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      border-left: 5px solid #3b69b0;
+      padding-left: 1rem;
     }
 
     .card p {
-      color: #3b4b5e;
-      margin-bottom: 1.5rem;
-      font-size: 1rem;
+      color: #cbd5e8;
+      margin-bottom: 1.8rem;
+      font-size: 1.05rem;
+      text-shadow: 0 1px 2px black;
     }
 
     .card .meta {
       margin-top: auto;
-      color: #697e9a;
-      font-size: 0.9rem;
-      border-top: 1px solid #e3e9f2;
-      padding-top: 1rem;
+      color: #8fa5cc;
+      font-size: 0.92rem;
+      border-top: 1px solid #253c60;
+      padding-top: 1.2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .badge {
-      background: #e8eef7;
-      padding: 0.3rem 1rem;
+      background: rgba(45, 75, 120, 0.7);
+      backdrop-filter: blur(4px);
+      padding: 0.3rem 1.2rem;
       border-radius: 40px;
-      font-size: 0.8rem;
-      color: #2f4057;
+      font-size: 0.85rem;
+      color: #d0e0ff;
+      border: 1px solid #5f7fb0;
       font-weight: 500;
     }
 
-    /* 特色横幅 - 简约个人简介 */
+    /* 横向简介区域 - 磨玻璃增强 */
     .profile-area {
-      background: #ffffffd9;
-      backdrop-filter: blur(4px);
-      border-radius: 42px;
-      padding: 2rem 2.2rem;
-      margin: 3rem 0 1.5rem;
+      background: rgba(18, 28, 40, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid #3a557a;
+      border-radius: 60px;
+      padding: 2.2rem 2.5rem;
+      margin: 3rem 0 2rem;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 2rem;
-      border: 1px solid #eef2f8;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+      gap: 2.5rem;
+      box-shadow: 0 25px 35px -10px black;
     }
 
     .profile-avatar {
-      width: 100px;
-      height: 100px;
+      width: 110px;
+      height: 110px;
       border-radius: 50%;
-      background: #cbd5e1;
-      background-image: radial-gradient(circle at 30% 30%, #d6e0f0, #b2c2d6);
+      background: linear-gradient(145deg, #2b3d5e, #17293f);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3.2rem;
-      color: #364958;
-      box-shadow: inset -2px -2px 5px #ffffff, inset 2px 2px 5px #9fb0c9;
-    }
-
-    .profile-text {
-      flex: 1;
+      font-size: 3.8rem;
+      color: #c7deff;
+      border: 2px solid #6c93cc;
+      box-shadow: 0 0 30px #3466a0;
     }
 
     .profile-text h2 {
-      font-size: 2rem;
-      font-weight: 400;
+      font-size: 2.4rem;
+      font-weight: 420;
       margin-bottom: 0.5rem;
-      letter-spacing: -0.3px;
-      color: #1d2b3a;
+      color: #e8f0ff;
     }
 
     .profile-text p {
-      font-size: 1.1rem;
-      color: #415570;
-      max-width: 700px;
+      font-size: 1.15rem;
+      color: #b6cbee;
+      max-width: 750px;
     }
 
-    /* 引用区块 */
+    /* 引用块 */
     .quote-block {
-      background: none;
-      border-left: 4px solid #9cb2d1;
-      padding: 1.2rem 2rem;
-      margin: 2.8rem 0 2rem;
-      font-style: normal;
-      background: #f4f8ff;
-      border-radius: 0 60px 60px 0;
+      border-left: 5px solid #3c6ab0;
+      padding: 1.5rem 2.5rem;
+      margin: 2.5rem 0 2rem;
+      background: rgba(0, 20, 45, 0.4);
+      backdrop-filter: blur(6px);
+      border-radius: 0 70px 70px 0;
     }
 
     .quote-block p {
-      font-size: 1.3rem;
+      font-size: 1.5rem;
       font-weight: 300;
-      color: #29384b;
+      color: #d6e5ff;
     }
 
     .quote-block footer {
-      margin-top: 0.5rem;
-      color: #5e7392;
+      margin-top: 0.6rem;
+      color: #7c9cd1;
     }
 
     /* 页脚 */
     footer {
-      background: #edf2f9;
-      padding: 2rem 1.5rem;
+      background: rgba(8, 16, 28, 0.8);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid #263d61;
+      padding: 2.5rem 1.5rem;
       text-align: center;
-      color: #52647a;
-      border-top: 1px solid #dce3ed;
-      font-size: 0.95rem;
-      margin-top: 2rem;
+      color: #a6bde2;
+      margin-top: 3rem;
     }
 
     footer a {
-      color: #2f496e;
+      color: #b7d0ff;
       text-decoration: none;
-      border-bottom: 1px dotted #8fa2c0;
+      border-bottom: 1px dotted #4b6b9e;
     }
 
     footer a:hover {
-      color: #0e2742;
-      border-bottom: 1px solid;
+      color: white;
+      border-bottom-color: #aac3ff;
     }
 
     .footer-links {
       display: flex;
-      gap: 2rem;
+      gap: 2.5rem;
       justify-content: center;
-      margin: 1rem 0 0.5rem;
+      margin: 1.2rem 0 0.8rem;
       flex-wrap: wrap;
-    }
-
-    /* 一些工具类 */
-    .text-sm {
-      font-size: 0.9rem;
-    }
-
-    .mt-2 {
-      margin-top: 1.5rem;
     }
 
     hr {
       border: none;
-      border-top: 1px solid #dee7f0;
-      margin: 2rem 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #3e5b88, transparent);
+      margin: 2.8rem 0;
+    }
+
+    details {
+      background: rgba(16, 28, 44, 0.6);
+      backdrop-filter: blur(8px);
+      border-radius: 50px;
+      padding: 0.8rem 2rem;
+      border: 1px solid #344e7a;
+      color: #c6d9ff;
+    }
+
+    summary {
+      font-weight: 500;
+      color: #bed6ff;
+      cursor: pointer;
+    }
+
+    /* 其他小细节 */
+    .text-glow {
+      text-shadow: 0 0 12px #3d7eff;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 2.8rem; }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>✦ 静 · 界 ✦</h1>
-  <div class="subhead">卡片叙事 · 留白造境 · 静态纯粹</div>
-</header>
+  <!-- 画布用于粒子效果 (托尾 + 点击爆炸) -->
+  <canvas id="particle-canvas"></canvas>
 
-<main class="container">
-  <!-- 简介卡片 / 个人头像区域 (横向) -->
-  <div class="profile-area">
-    <div class="profile-avatar" aria-label="抽象头像">◉‿◉</div>
-    <div class="profile-text">
-      <h2>胡 禅 · Hu Chan</h2>
-      <p>数字漫游者 / 界面爱好者。 这个网站是完全的静态HTML，却想装下一点点有趣的想法。没有后台，没有构建，只有最朴素的卡片与留白。</p>
-      <span class="badge" style="margin-top:0.8rem; display:inline-block;">✧ 极简主义 · 2025 ✧</span>
-    </div>
-  </div>
+  <!-- 所有可见内容包装，位于画布之上且可交互 -->
+  <div class="content-wrapper">
+    <header>
+      <h1>✦ 流光 · 静界 ✦</h1>
+      <div class="subhead">鼠标滑过留下星尘 · 点击绽放刹那烟火</div>
+    </header>
 
-  <!-- 格言/引用 增加一些层次 -->
-  <div class="quote-block">
-    <p>“ 把复杂留给逻辑，把简单交给界面。静态并非枯燥，每一行代码都是一次展览。” </p>
-    <footer>—— 本页无框架，无依赖，仅HTML/CSS</footer>
-  </div>
-
-  <!-- 卡片网格：展示静态站点可以包含的任意内容模块 -->
-  <h2 style="font-weight: 380; margin: 2.5rem 0 0.5rem; font-size: 2rem; letter-spacing:-0.3px; color:#243342;">今日·碎片</h2>
-  <div class="grid">
-    <!-- 卡片 1 -->
-    <article class="card">
-      <div class="card-icon">📘</div>
-      <h3>阅读偶得</h3>
-      <p>重读《瓦尔登湖》——“不必给我爱，不必给我钱，不必给我名誉，给我真理吧。” 静态页面像湖面，倒映内容本身。</p>
-      <div class="meta">
-        <span>📆 2025.03.11</span>
-        <span class="badge">笔记</span>
+    <main class="container">
+      <!-- 个人简介区域 -->
+      <div class="profile-area">
+        <div class="profile-avatar" aria-label="粒子化身">◉‿◉</div>
+        <div class="profile-text">
+          <h2>林 一 · Lin Yi</h2>
+          <p>数字游民 / 粒子爱好者。 每一次点击都是小宇宙爆发，每一次鼠标移动都拖出光的尾巴。纯静态，却不止于静。</p>
+          <span class="badge" style="margin-top:0.8rem; display:inline-block;">✧ 交互实验 · 2026 ✧</span>
+        </div>
       </div>
-    </article>
 
-    <!-- 卡片 2 -->
-    <article class="card">
-      <div class="card-icon">🌱</div>
-      <h3>植物手记</h3>
-      <p>最近窗台的薄荷长出新叶。光照、水、安静的生长。就像这个页面，只有基础的养分，却能常青。</p>
-      <div class="meta">
-        <span>📍 窗台</span>
-        <span class="badge">日常</span>
+      <!-- 引用块 -->
+      <div class="quote-block">
+        <p>“ 把点击交给粒子，把视觉留给界面。静态页也有活泼的灵魂。” </p>
+        <footer>—— 拖尾 + 爆炸，纯canvas实现</footer>
       </div>
-    </article>
 
-    <!-- 卡片 3 -->
-    <article class="card">
-      <div class="card-icon">⚙️</div>
-      <h3>小工具集</h3>
-      <p>静态页面里也可以藏一些有用的小东西：比如字符计数器、待办列表。这里只是一个展示位。</p>
-      <div class="meta">
-        <span>🛠 构思中</span>
-        <span class="badge">实验</span>
+      <!-- 卡片网格 -->
+      <h2 style="font-weight: 380; margin: 2.5rem 0 0.5rem; font-size: 2.2rem; letter-spacing:-0.3px; color:#d2e5ff;">✨ 星尘碎片</h2>
+      <div class="grid">
+        <article class="card">
+          <div class="card-icon">📘</div>
+          <h3>阅读偶得</h3>
+          <p>“不必给我爱，不必给我钱，给我真理吧。” 每一次点击让文字炸成星芒，划过的是思绪的轨迹。</p>
+          <div class="meta"><span>📆 2026.03.13</span><span class="badge">笔记</span></div>
+        </article>
+        <article class="card">
+          <div class="card-icon">🌱</div>
+          <h3>植物手记</h3>
+          <p>薄荷新叶，窗台阳光。鼠标拖尾如微风，点击如露珠迸溅。安静中的动态诗意。</p>
+          <div class="meta"><span>📍 窗台</span><span class="badge">日常</span></div>
+        </article>
+        <article class="card">
+          <div class="card-icon">⚙️</div>
+          <h3>粒子实验室</h3>
+          <p>下面的爆炸效果就是证明。静态页面加上canvas，瞬间拥有生命感。</p>
+          <div class="meta"><span>🛠 实验成功</span><span class="badge">交互</span></div>
+        </article>
+        <article class="card">
+          <div class="card-icon">🖼</div>
+          <h3>今日色块</h3>
+          <p style="background: #14233b; border-radius: 24px; padding:1.2rem 0.5rem; text-align:center; color:#96b4ec;"> ⛅ 点击此处看看爆炸效果 </p>
+          <div class="meta"><span>🎨 氛围</span><span class="badge">抽象</span></div>
+        </article>
       </div>
-    </article>
 
-    <!-- 卡片 4  (额外增加一个宽一点的卡片在网格中也会自适应) -->
-    <article class="card">
-      <div class="card-icon">🖼</div>
-      <h3>今日图片</h3>
-      <p style="background: #eef3fa; border-radius: 18px; padding: 1rem 0.5rem; text-align: center; color:#4f658d;">
-        ⛅ [ 一片想象中的蓝色 ] <br> ( 纯粹CSS绘制的色块 )
-      </p>
-      <div class="meta">
-        <span>🎨 氛围</span>
-        <span class="badge">抽象</span>
+      <hr>
+
+      <!-- 联系区 -->
+      <div style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: space-between; align-items: center; margin: 2rem 0 1rem;">
+        <div><span style="font-size: 1.5rem; background: #1e3452; padding: 0.5rem 2rem; border-radius: 60px;">📮 联络星尘</span></div>
+        <div style="display: flex; gap: 2.5rem; flex-wrap: wrap; color:#adc3ec;"> 
+          <span>✉️ hello@stardust.io</span>
+          <span>📱 @glow-tail</span>
+          <span>🌐 particle.place</span>
+        </div>
       </div>
-    </article>
+
+      <!-- 折叠区 -->
+      <section style="margin: 3rem 0 1rem;">
+        <h2 style="font-weight: 380; font-size: 2rem; color:#cddeff;">❓ 偶尔想到</h2>
+        <div style="display: flex; flex-direction: column; gap: 1.2rem; margin-top: 1.8rem;">
+          <details><summary>拖尾和爆炸怎么实现的？</summary><p style="margin-top:0.8rem;">通过canvas监听mousemove和click事件，生成粒子并赋予随机速度/衰减。每帧更新绘制，透明渐变消失。</p></details>
+          <details><summary>为什么叫“流光·静界”？</summary><p style="margin-top:0.8rem;">静态的内容框架 + 流动的粒子光效，一动一静，如同界面与宇宙尘埃。</p></details>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p style="font-size:1.2rem;">🌌 保持简单，但允许光效</p>
+      <div class="footer-links">
+        <a href="#">关于</a><a href="#">文字</a><a href="#">瞬间</a><a href="#">订阅</a><a href="#">github</a>
+      </div>
+      <p>© 2026 流光静界 — 鼠标拖尾/点击爆炸 | 无依赖，纯手工粒子</p>
+    </footer>
   </div>
 
-  <!-- 一个简单的水平分隔和附加链接区，仍然保持静态 -->
-  <hr>
+  <script>
+    (function() {
+      // ----- 粒子系统 (拖尾 + 点击爆炸) -----
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+      let width, height;
 
-  <div style="display: flex; flex-wrap: wrap; gap: 1.8rem; justify-content: space-between; align-items: center; margin: 2rem 0 1rem;">
-    <div>
-      <span style="font-size: 1.4rem; background: #e3eaf3; padding: 0.4rem 1.8rem; border-radius: 60px;">📮 联络点</span>
-    </div>
-    <div style="display: flex; gap: 2.5rem; flex-wrap: wrap; color:#345073;">
-      <span>✉️  hello@static.place</span>
-      <span>📱  @jingjie (假设)</span>
-      <span>🌐  uring.fake</span>
-    </div>
-  </div>
+      // 粒子数组
+      let particles = [];
 
-  <!-- 另一个轻量模块: 常见问答/瞬间 -->
-  <section style="margin: 3rem 0 1rem;">
-    <h2 style="font-weight: 380; font-size: 1.8rem; color:#1d2c3f;">偶尔想到</h2>
-    <div style="display: flex; flex-direction: column; gap: 1.2rem; margin-top: 1.5rem;">
-      <details style="background: white; border-radius: 50px; padding: 0.8rem 1.8rem; border: 1px solid #dbe2ec; cursor: pointer;">
-        <summary style="font-weight: 500; color:#1b344d;">❓ 静态网站能做什么</summary>
-        <p style="margin-top: 0.8rem; color: #415775;">可以承载文字、图片、链接、卡片，展示作品，个人介绍，文档，甚至小游戏（用JS）。这里是纯展示，但潜力无限。</p>
-      </details>
-      <details style="background: white; border-radius: 50px; padding: 0.8rem 1.8rem; border: 1px solid #dbe2ec;">
-        <summary style="font-weight: 500; color:#1b344d;">❓ 为什么叫“静·界”</summary>
-        <p style="margin-top: 0.8rem; color: #415775;">静态的页面，内心的边界。一个没有后台干扰的小角落，每一个像素都出自写代码的当下。</p>
-      </details>
-    </div>
-  </section>
-</main>
+      // 配置
+      const MAX_PARTICLES = 500;        // 最多粒子数 (防止过量)
+      const TRAIL_FREQUENCY = 3;         // 每移动多少像素生成一个拖尾粒子 (数值越小越密)
+      const EXPLOSION_COUNT = 16;        // 每次点击爆炸产生的粒子数
 
-<!-- 页脚部分，包含社交链接（仅示意）和版权 -->
-<footer>
-  <p style="font-size: 1.1rem; margin-bottom: 0.6rem;">🌿 保持简单，保持静态</p>
-  <div class="footer-links">
-    <a href="#">关于</a>
-    <a href="#">文字</a>
-    <a href="#">瞬间</a>
-    <a href="#">订阅 (rss)</a>
-    <a href="#">github</a>
-  </div>
-  <p style="margin-top: 1.2rem; opacity: 0.8;">© 2025 静·界 — 完全静态网站，无隐藏追踪，无cookies。</p>
-  <p style="margin-top: 0.3rem; font-size:0.85rem;">用❤️生成，只有HTML/CSS，自由修改，随处托管。</p>
-</footer>
+      // 上次鼠标位置记录(用于拖尾间隔)
+      let lastMouseX = null, lastMouseY = null;
+      let mouseMoved = false;
 
-<!-- 不需要任何脚本，干干净净 -->
+      // 初始化画布尺寸
+      function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // ----- 粒子类(轻量结构) -----
+      function createParticle(x, y, vx, vy, color, life = 1.0, size = 3) {
+        return {
+          x, y,
+          vx: vx || (Math.random() - 0.5) * 2,
+          vy: vy || (Math.random() - 0.5) * 2,
+          color: color || `hsl(${Math.random() * 60 + 200}, 80%, 70%)`, // 蓝青色域
+          life: life,        // 初始生命值 1.0 -> 0
+          maxLife: life,
+          size: size || Math.random() * 4 + 2,
+          decay: 0.015 + Math.random() * 0.02,  // 每帧衰减
+        };
+      }
+
+      // 添加拖尾粒子 (基于鼠标位置)
+      function addTrailParticles(x, y) {
+        // 限制总数：如果超过最大粒子数，移除较早的一部分 (前20%)
+        if (particles.length > MAX_PARTICLES * 0.8) {
+          particles.splice(0, Math.floor(MAX_PARTICLES * 0.2));
+        }
+
+        // 生成2~3个细微粒子，带微小随机偏移
+        const count = 2 + Math.floor(Math.random() * 2);
+        for (let i = 0; i < count; i++) {
+          const offsetX = (Math.random() - 0.5) * 14;
+          const offsetY = (Math.random() - 0.5) * 14;
+          const vx = (Math.random() - 0.5) * 1.2;
+          const vy = (Math.random() - 0.5) * 1.2 - 0.3; // 轻微向上飘
+          const hue = 200 + Math.random() * 60; // 蓝青色调
+          const color = `hsl(${hue}, 85%, 70%)`;
+          particles.push(createParticle(
+            x + offsetX, y + offsetY,
+            vx, vy,
+            color,
+            0.9 + Math.random() * 0.3, // 生命
+            2 + Math.random() * 4      // 大小
+          ));
+        }
+      }
+
+      // 点击爆炸: 生成一圈散射粒子
+      function addExplosion(clickX, clickY) {
+        // 清理一点旧粒子防止溢出 (当粒子很多时)
+        if (particles.length > MAX_PARTICLES * 0.9) {
+          particles.splice(0, Math.floor(MAX_PARTICLES * 0.3));
+        }
+
+        for (let i = 0; i < EXPLOSION_COUNT; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 2 + Math.random() * 6;
+          const vx = Math.cos(angle) * speed * (0.5 + Math.random() * 0.8);
+          const vy = Math.sin(angle) * speed * (0.5 + Math.random() * 0.8) - 1; // 略微上扬
+          const hue = (Math.random() * 80 + 180) | 0; // 蓝绿/青/紫范围
+          const color = `hsl(${hue}, 90%, 70%)`;
+          particles.push(createParticle(
+            clickX, clickY,
+            vx, vy,
+            color,
+            1.2 + Math.random() * 0.8,  // 生命稍长
+            3 + Math.random() * 7
+          ));
+        }
+        // 额外添加几个小亮点
+        for (let i = 0; i < 5; i++) {
+          particles.push(createParticle(
+            clickX + (Math.random()-0.5)*30, clickY + (Math.random()-0.5)*30,
+            (Math.random()-0.5)*2, (Math.random()-0.5)*2 - 1,
+            `hsl(${180+Math.random()*60}, 90%, 80%)`,
+            0.8,
+            2
+          ));
+        }
+      }
+
+      // 更新粒子: 移动、衰减、移除
+      function updateParticles() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          // 移动
+          p.x += p.vx;
+          p.y += p.vy;
+          // 阻力/重力 (微弱的)
+          p.vy += 0.03;        // 微弱下落
+          p.vx *= 0.99;
+          // 生命衰减
+          p.life -= p.decay;
+          // 如果生命耗尽或超出画布太远(节省性能) 则移除
+          if (p.life <= 0.02 || p.y > height + 50 || p.y < -50 || p.x < -50 || p.x > width + 50) {
+            particles.splice(i, 1);
+          }
+        }
+      }
+
+      // 绘制粒子
+      function drawParticles() {
+        ctx.clearRect(0, 0, width, height);
+        for (let p of particles) {
+          const opacity = Math.min(p.life * 1.2, 0.9); // 透明度随生命衰减
+          ctx.globalAlpha = opacity;
+          ctx.beginPath();
+          // 粒子形状可圆可方，使用圆形更柔和
+          ctx.arc(p.x, p.y, p.size * (0.6 + 0.4 * p.life), 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+          // 加一点光晕效果 (小粒子周围半透明)
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0; // 重置
+        }
+      }
+
+      // ----- 鼠标事件监听 -----
+      // 鼠标移动 (拖尾)
+      function onMouseMove(e) {
+        const x = e.clientX;
+        const y = e.clientY;
+
+        // 用鼠标移动距离控制生成频率
+        if (lastMouseX !== null && lastMouseY !== null) {
+          const dx = x - lastMouseX;
+          const dy = y - lastMouseY;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist > TRAIL_FREQUENCY) {
+            // 在两点之间插值，防止移动太快断档
+            const steps = Math.floor(dist / TRAIL_FREQUENCY) + 1;
+            for (let s = 1; s <= steps; s++) {
+              const t = s / steps;
+              const ix = lastMouseX + dx * t;
+              const iy = lastMouseY + dy * t;
+              addTrailParticles(ix, iy);
+            }
+          }
+        } else {
+          // 第一次移动，生成一小簇
+          addTrailParticles(x, y);
+        }
+
+        lastMouseX = x;
+        lastMouseY = y;
+      }
+
+      // 鼠标离开窗口时重置last，避免重新进入时生成连线
+      function onMouseLeave() {
+        lastMouseX = lastMouseY = null;
+      }
+
+      // 点击爆炸
+      function onClick(e) {
+        const x = e.clientX;
+        const y = e.clientY;
+        addExplosion(x, y);
+      }
+
+      // 确保canvas事件不遮挡鼠标，但我们监听document
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseleave', onMouseLeave);  // 对整个document
+      document.addEventListener('click', onClick);
+
+      // 触摸设备简单支持 (可选)
+      document.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (e.touches.length) {
+          const touch = e.touches[0];
+          onMouseMove(touch);
+        }
+      }, { passive: false });
+      document.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (e.touches.length) {
+          const touch = e.touches[0];
+          onClick(touch);   // 触摸时触发爆炸
+        }
+      });
+      document.addEventListener('touchend', (e) => {
+        lastMouseX = lastMouseY = null; // 重置
+      });
+
+      // 动画循环
+      function animate() {
+        updateParticles();
+        drawParticles();
+        requestAnimationFrame(animate);
+      }
+      animate();
+
+      // 可选: 清理资源(但页面关闭自动清理)
+      window.addEventListener('beforeunload', () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('click', onClick);
+      });
+
+      // 加一点初始粒子活跃气氛
+      for (let i = 0; i < 12; i++) {
+        particles.push(createParticle(
+          Math.random() * width, Math.random() * height,
+          (Math.random()-0.5)*0.5, (Math.random()-0.5)*0.3,
+          `hsl(${200 + Math.random()*60}, 80%, 70%)`,
+          0.5 + Math.random() * 0.8,
+          2
+        ));
+      }
+    })();
+  </script>
 </body>
 </html>
